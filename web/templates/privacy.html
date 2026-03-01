@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — sfpermits.ai</title>
+    <meta name="description" content="sfpermits.ai Privacy Policy. How we collect, use, and protect your data.">
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        body {
+            font-family: var(--sans);
+            background: var(--obsidian);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+        }
+        .legal-hero {
+            padding: var(--space-16) 0 var(--space-8);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .legal-hero .eyebrow {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 0 0 var(--space-3) 0;
+        }
+        .legal-hero h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        .legal-hero .updated {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+        .legal-body {
+            padding: var(--space-10) 0 var(--space-16);
+        }
+        .legal-section {
+            margin-bottom: var(--space-10);
+        }
+        .legal-section h2 {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 0 0 var(--space-3) 0;
+            padding-top: var(--space-6);
+            border-top: 1px solid var(--glass-border);
+        }
+        .legal-section p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-3) 0;
+            line-height: 1.75;
+        }
+        .legal-section ul {
+            margin: var(--space-2) 0 var(--space-4) var(--space-5);
+            padding: 0;
+        }
+        .legal-section li {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            line-height: 1.7;
+        }
+        .third-party-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-sm);
+            margin: var(--space-4) 0;
+        }
+        .third-party-table th {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: left;
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .third-party-table td {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+            vertical-align: top;
+        }
+        .third-party-table td:first-child {
+            font-family: var(--mono);
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    {% include "fragments/nav.html" %}
+
+    <div class="container">
+        <section class="legal-hero">
+            <p class="eyebrow">Legal</p>
+            <h1>Privacy Policy</h1>
+            <p class="updated">Last updated: January 2025</p>
+        </section>
+
+        <div class="legal-body">
+            <div class="legal-section">
+                <h2>What We Collect</h2>
+                <p>We collect only what's necessary to provide the service:</p>
+                <ul>
+                    <li><strong>Permit search queries</strong> — logged for service improvement and debugging. Retained 90 days.</li>
+                    <li><strong>Email addresses</strong> — collected at signup for account access, magic-link authentication, and optional morning brief emails.</li>
+                    <li><strong>Usage analytics</strong> — page views and feature usage via PostHog (see Third Parties below). IP addresses are anonymized.</li>
+                    <li><strong>Uploaded PDFs</strong> — plan sets uploaded via the plan analysis tool are processed in memory and not stored permanently. No PDF content is retained after analysis completes.</li>
+                    <li><strong>Watchlist addresses</strong> — properties you choose to watch are stored in your account so we can alert you to changes.</li>
+                    <li><strong>Feedback submissions</strong> — bug reports and suggestions you submit via the feedback widget.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>How We Use It</h2>
+                <ul>
+                    <li><strong>Service delivery</strong> — returning search results, generating property reports, sending morning briefs.</li>
+                    <li><strong>Search improvement</strong> — anonymized query logs help us understand what users search for and improve result quality.</li>
+                    <li><strong>Analytics</strong> — aggregate usage data helps us understand which features are most useful.</li>
+                    <li><strong>Beta access management</strong> — email addresses are used to manage beta invitations and account tiers.</li>
+                    <li><strong>Email communications</strong> — we send magic-link login emails, morning brief emails (opt-in), and significant policy update notices.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>What We Don't Do</h2>
+                <ul>
+                    <li>We do <strong>not</strong> sell your data to third parties.</li>
+                    <li>We do <strong>not</strong> share personally identifiable information (PII) with third parties for their own marketing purposes.</li>
+                    <li>We do <strong>not</strong> store uploaded plan PDF files permanently — they are processed in memory and discarded.</li>
+                    <li>We do <strong>not</strong> track your activity across other websites.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>Data Sources</h2>
+                <p>
+                    All permit, property, business, complaint, violation, and inspection data is sourced from public
+                    San Francisco government records via <a href="https://data.sfgov.org" target="_blank" rel="noopener">data.sfgov.org</a>.
+                    This data is public record and updated nightly. We do not create or modify government records —
+                    we aggregate and analyze them to make them more accessible.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Third Parties</h2>
+                <p>We use the following third-party services to operate sfpermits.ai:</p>
+                <table class="third-party-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Purpose</th>
+                            <th>Data shared</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PostHog</td>
+                            <td>Product analytics</td>
+                            <td>Anonymized page views and feature usage events</td>
+                        </tr>
+                        <tr>
+                            <td>Railway</td>
+                            <td>Cloud hosting and database</td>
+                            <td>All application data (processed in their infrastructure)</td>
+                        </tr>
+                        <tr>
+                            <td>Anthropic</td>
+                            <td>AI processing via Claude API</td>
+                            <td>Permit data and plan content sent for analysis (not your personal info)</td>
+                        </tr>
+                        <tr>
+                            <td>SendGrid</td>
+                            <td>Transactional email delivery</td>
+                            <td>Your email address for login links and brief emails</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="legal-section">
+                <h2>Data Retention</h2>
+                <ul>
+                    <li><strong>Search query logs</strong> — retained 90 days for service improvement, then deleted.</li>
+                    <li><strong>Account data</strong> (email, watchlist, preferences) — retained until you request deletion.</li>
+                    <li><strong>Uploaded plan PDFs</strong> — not stored; processed in memory and discarded immediately after analysis.</li>
+                    <li><strong>Feedback submissions</strong> — retained indefinitely to track product improvements.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>MCP Server (Claude.ai Integration)</h2>
+                <p>
+                    When you connect sfpermits.ai to Claude.ai via our MCP server, tool calls are processed
+                    by our server and responses returned to your Claude conversation. We log tool call metadata
+                    (endpoint name, timestamp, response time) for rate limiting and debugging purposes,
+                    but we do <strong>not</strong> log your Claude conversation content.
+                </p>
+                <p>
+                    OAuth tokens issued for Claude.ai integration are tied to your sfpermits.ai account.
+                    You can revoke access at any time by contacting us.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Cookies</h2>
+                <ul>
+                    <li><strong>Session cookie</strong> — required for authentication. Expires when you close your browser or log out.</li>
+                    <li><strong>PostHog analytics cookie</strong> — optional. Used to track aggregate usage patterns. You can disable this in your browser settings.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>Your Rights</h2>
+                <p>
+                    You may request deletion of your account and associated data at any time by emailing
+                    <a href="mailto:tim@sfpermits.ai">tim@sfpermits.ai</a> with the subject line "Delete my account."
+                    We will process deletion requests within 30 days.
+                </p>
+                <p>
+                    You can unsubscribe from morning brief emails at any time via the unsubscribe link in the footer
+                    of any brief email, or by updating your account preferences.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Contact</h2>
+                <p>
+                    Privacy questions or data requests: <a href="mailto:tim@sfpermits.ai">tim@sfpermits.ai</a>
+                </p>
+                <p>
+                    See also: <a href="/terms">Terms of Service</a> · <a href="/docs">API Documentation</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer style="border-top: 1px solid var(--glass-border); padding: var(--space-8) 0; margin-top: var(--space-8);">
+        <div style="max-width: 760px; margin: 0 auto; padding: 0 var(--space-5); display: flex; gap: var(--space-6); flex-wrap: wrap;">
+            <a href="/terms" style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-decoration: none;">Terms</a>
+            <a href="/docs" style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-decoration: none;">API Docs</a>
+            <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-ghost);">sfpermits.ai</span>
+        </div>
+    </footer>
+</body>
+</html>

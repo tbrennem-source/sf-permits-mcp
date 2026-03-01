@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service — sfpermits.ai</title>
+    <meta name="description" content="sfpermits.ai Terms of Service. Beta status, acceptable use, data accuracy, and limitations.">
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        body {
+            font-family: var(--sans);
+            background: var(--obsidian);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+        }
+        .legal-hero {
+            padding: var(--space-16) 0 var(--space-8);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .legal-hero .eyebrow {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 0 0 var(--space-3) 0;
+        }
+        .legal-hero h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        .legal-hero .updated {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+        .legal-body {
+            padding: var(--space-10) 0 var(--space-16);
+        }
+        .legal-section {
+            margin-bottom: var(--space-10);
+        }
+        .legal-section h2 {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 0 0 var(--space-3) 0;
+            padding-top: var(--space-6);
+            border-top: 1px solid var(--glass-border);
+        }
+        .legal-section p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-3) 0;
+            line-height: 1.75;
+        }
+        .legal-section ul {
+            margin: var(--space-2) 0 var(--space-4) var(--space-5);
+            padding: 0;
+        }
+        .legal-section li {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            line-height: 1.7;
+        }
+        .notice-box {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--signal-amber);
+            border-radius: 4px;
+            padding: var(--space-4) var(--space-5);
+            margin: var(--space-4) 0;
+        }
+        .notice-box p {
+            margin: 0;
+            font-size: var(--text-sm);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    {% include "fragments/nav.html" %}
+
+    <div class="container">
+        <section class="legal-hero">
+            <p class="eyebrow">Legal</p>
+            <h1>Terms of Service</h1>
+            <p class="updated">Last updated: January 2025</p>
+        </section>
+
+        <div class="legal-body">
+            <div class="legal-section">
+                <h2>Beta Status</h2>
+                <p>
+                    sfpermits.ai is currently in beta. This means:
+                </p>
+                <ul>
+                    <li>Features may change, be added, or be removed without advance notice.</li>
+                    <li>Data accuracy is best-effort — we aggregate public government data but cannot guarantee it is always current or complete.</li>
+                    <li>Service availability is not guaranteed — we may have downtime for maintenance or unexpected issues.</li>
+                    <li>Beta access may be revoked if the program becomes oversubscribed or if terms are violated.</li>
+                </ul>
+                <p>
+                    We appreciate your patience and feedback as we improve the product. Please report issues to
+                    <a href="mailto:tim@sfpermits.ai">tim@sfpermits.ai</a> or via the in-app feedback widget.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Data Accuracy</h2>
+                <div class="notice-box">
+                    <p>
+                        <strong>This is not legal advice.</strong> Permit timelines, fee estimates, and routing predictions
+                        are based on historical data and statistical models. Always verify critical information directly
+                        with the San Francisco Department of Building Inspection (DBI) before making business decisions.
+                    </p>
+                </div>
+                <p>
+                    We aggregate public permit data from <a href="https://data.sfgov.org" target="_blank" rel="noopener">data.sfgov.org</a>
+                    and update our database nightly. However:
+                </p>
+                <ul>
+                    <li>There may be a lag between DBI updates and our database refresh.</li>
+                    <li>Timeline estimates are statistical predictions based on historical permit patterns — individual permits vary significantly.</li>
+                    <li>Fee estimates are calculated from published DBI fee schedules and may not reflect special circumstances or recent updates.</li>
+                    <li>Entity data is derived from permit contact records and may contain errors or duplicate records.</li>
+                    <li>All permit data is public record sourced directly from the City and County of San Francisco.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>Acceptable Use</h2>
+                <p>By using sfpermits.ai, you agree not to:</p>
+                <ul>
+                    <li><strong>Scrape or bulk-download</strong> permit data programmatically beyond normal use. For bulk data, use <a href="https://data.sfgov.org" target="_blank" rel="noopener">data.sfgov.org</a> directly.</li>
+                    <li><strong>Automate API calls</strong> at rates that exceed your account tier's rate limits.</li>
+                    <li><strong>Attempt to access</strong> other users' accounts, data, or private information.</li>
+                    <li><strong>Reverse engineer</strong> the service to circumvent rate limits or access controls.</li>
+                    <li><strong>Use the service</strong> for any purpose that violates applicable law.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>Rate Limits</h2>
+                <p>
+                    Rate limits are enforced per account tier (see <a href="/docs">API Documentation</a> for current limits).
+                    Exceeding your tier's limit results in temporary throttling (HTTP 429) — not account termination.
+                    Repeated, deliberate circumvention of rate limits may result in account suspension.
+                </p>
+                <p>
+                    To request a higher tier, contact <a href="mailto:tim@sfpermits.ai">tim@sfpermits.ai</a>.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Account Termination</h2>
+                <p>
+                    We may suspend or terminate accounts that:
+                </p>
+                <ul>
+                    <li>Violate the acceptable use terms above</li>
+                    <li>Attempt to circumvent rate limits or access controls</li>
+                    <li>Use the service in ways that harm other users or our infrastructure</li>
+                </ul>
+                <p>
+                    To appeal a suspension, email <a href="mailto:tim@sfpermits.ai">tim@sfpermits.ai</a>.
+                    We will review appeals within 5 business days.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Intellectual Property</h2>
+                <p>
+                    <strong>Permit data</strong> is public record sourced from the City and County of San Francisco.
+                    It is not our intellectual property and remains in the public domain.
+                </p>
+                <p>
+                    <strong>Our analysis, intelligence tools, UI, and presentation</strong> — including the timeline
+                    estimation models, entity resolution algorithms, knowledge base, and web interface — are proprietary
+                    to sfpermits.ai. You may not reproduce or redistribute them without permission.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Limitation of Liability</h2>
+                <p>
+                    sfpermits.ai is provided "as is" without warranties of any kind, express or implied.
+                    We make no warranty that the service will be error-free, uninterrupted, or that data
+                    will be accurate or complete.
+                </p>
+                <p>
+                    To the fullest extent permitted by law, sfpermits.ai and its operators shall not be liable
+                    for any indirect, incidental, special, or consequential damages arising from your use of the service,
+                    including but not limited to permit delays, incorrect fee estimates, or decisions made based on
+                    data provided by this service.
+                </p>
+                <p>
+                    Our total liability for any claim arising from use of the service shall not exceed the amount
+                    you paid for the service in the 12 months preceding the claim. For beta users (who pay nothing),
+                    our liability is zero.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Changes to These Terms</h2>
+                <p>
+                    We may update these terms as the product evolves. For significant changes, we will send
+                    an email notification to all registered users at least 14 days before the changes take effect.
+                    Continued use of sfpermits.ai after the effective date constitutes acceptance of the updated terms.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2>Contact</h2>
+                <p>
+                    Questions about these terms: <a href="mailto:tim@sfpermits.ai">tim@sfpermits.ai</a>
+                </p>
+                <p>
+                    See also: <a href="/privacy">Privacy Policy</a> · <a href="/docs">API Documentation</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer style="border-top: 1px solid var(--glass-border); padding: var(--space-8) 0; margin-top: var(--space-8);">
+        <div style="max-width: 760px; margin: 0 auto; padding: 0 var(--space-5); display: flex; gap: var(--space-6); flex-wrap: wrap;">
+            <a href="/privacy" style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-decoration: none;">Privacy</a>
+            <a href="/docs" style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-decoration: none;">API Docs</a>
+            <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-ghost);">sfpermits.ai</span>
+        </div>
+    </footer>
+</body>
+</html>
