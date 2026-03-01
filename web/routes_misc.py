@@ -649,3 +649,27 @@ def demo():
 def demo_guided():
     """Self-guided walkthrough page for stakeholder demos."""
     return render_template("demo_guided.html")
+
+
+# ---------------------------------------------------------------------------
+# API Documentation + Legal pages (no auth required)
+# ---------------------------------------------------------------------------
+
+@bp.route("/docs")
+def api_docs():
+    """Public API documentation page — 34 tools across 7 categories."""
+    from web.docs_generator import get_tool_catalog
+    catalog = get_tool_catalog()
+    return render_template("docs.html", catalog=catalog)
+
+
+@bp.route("/privacy")
+def privacy():
+    """Privacy policy page."""
+    return render_template("privacy.html")
+
+
+@bp.route("/terms")
+def terms():
+    """Terms of service page."""
+    return render_template("terms.html")
