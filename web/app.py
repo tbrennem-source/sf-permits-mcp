@@ -1538,18 +1538,59 @@ def health():
                         (datetime.now(timezone.utc) - last_hb).total_seconds() / 60, 1
                     )
                     info["cron_heartbeat_age_minutes"] = age_minutes
-                    if age_minutes > 120:
+                    if age_minutes > 1500:  # >25 hours — nightly hasn't run
                         info["cron_heartbeat_status"] = "CRITICAL"
-                    elif age_minutes > 30:
+                        info["status"] = "degraded"
+                    elif age_minutes > 120:
                         info["cron_heartbeat_status"] = "WARNING"
+                    elif age_minutes > 30:
+                        info["cron_heartbeat_status"] = "OK"
                     else:
                         info["cron_heartbeat_status"] = "OK"
                 else:
                     info["cron_heartbeat_age_minutes"] = None
                     info["cron_heartbeat_status"] = "NO_DATA"
+                    info["status"] = "degraded"
             except Exception:
                 info["cron_heartbeat_age_minutes"] = None
                 info["cron_heartbeat_status"] = "ERROR"
+
+            # === QS13: Data continuity gap detection ===
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        # Check permit_changes for gaps in the last 7 days
+                        cur.execute("""
+                            SELECT d::date AS day,
+                                   COALESCE(c.cnt, 0) AS changes
+                            FROM generate_series(
+                                CURRENT_DATE - INTERVAL '7 days',
+                                CURRENT_DATE - INTERVAL '1 day',
+                                '1 day'
+                            ) d
+                            LEFT JOIN (
+                                SELECT DATE(detected_at) AS day, COUNT(*) AS cnt
+                                FROM permit_changes
+                                WHERE detected_at >= CURRENT_DATE - INTERVAL '7 days'
+                                GROUP BY DATE(detected_at)
+                            ) c ON d::date = c.day
+                            ORDER BY d
+                        """)
+                        gap_rows = cur.fetchall()
+                        data_gaps = []
+                        for day, count in gap_rows:
+                            if count == 0:
+                                data_gaps.append(str(day))
+                        info["data_continuity"] = {
+                            "days_checked": len(gap_rows),
+                            "gap_days": data_gaps,
+                            "has_gaps": len(data_gaps) > 0,
+                        }
+                        if data_gaps:
+                            info["status"] = "degraded"
+            except Exception:
+                info["data_continuity"] = {"error": "unavailable"}
+            # === END QS13 ===
             # === END QS3-B ===
         finally:
             conn.close()

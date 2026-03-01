@@ -2492,13 +2492,35 @@ async def ingest_recent_permits(conn, client: SODAClient, days: int = 30) -> int
     batch = [_normalize_permit(r) for r in all_records]
 
     # Upsert: ON CONFLICT (permit_number) DO UPDATE
-    # DuckDB: INSERT OR REPLACE
-    # Postgres: handled by _PgConnWrapper._translate_sql or explicit ON CONFLICT
-    conn.executemany(
+    # DuckDB: INSERT OR REPLACE via conn.executemany
+    # Postgres: _PooledConnection delegates to raw psycopg2 conn which lacks
+    # executemany — use cursor + execute_batch instead.
+    sql = (
         "INSERT OR REPLACE INTO permits VALUES "
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        batch,
+        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
+    if hasattr(conn, 'executemany'):
+        conn.executemany(sql, batch)
+    else:
+        # Postgres path: translate SQL and use cursor-based batch insert
+        pg_sql = sql.replace("?", "%s").replace(
+            "INSERT OR REPLACE INTO", "INSERT INTO"
+        )
+        if "ON CONFLICT" not in pg_sql:
+            pg_sql += " ON CONFLICT (permit_number) DO UPDATE SET " + ", ".join(
+                f"{col}=EXCLUDED.{col}" for col in [
+                    "permit_type", "description", "status", "status_date",
+                    "filed_date", "issued_date", "completed_date", "expiration_date",
+                    "estimated_cost", "revised_cost", "existing_use", "proposed_use",
+                    "plansets", "existing_stories", "proposed_stories",
+                    "existing_units", "proposed_units", "block", "lot",
+                    "street_number", "street_name", "street_suffix",
+                    "unit", "zipcode", "neighborhoods_analysis_boundaries",
+                ]
+            )
+        import psycopg2.extras
+        with conn.cursor() as cur:
+            psycopg2.extras.execute_batch(cur, pg_sql, batch, page_size=5000)
 
     return len(batch)
 

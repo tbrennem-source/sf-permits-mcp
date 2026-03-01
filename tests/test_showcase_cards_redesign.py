@@ -158,47 +158,45 @@ class TestShowcaseEntity:
         html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
         assert "Network Intelligence" in html
 
-    def test_has_svg_node_graph(self, jinja_env, showcase_data):
-        """Card contains an SVG node graph."""
+    def test_has_professional_cards(self, jinja_env, showcase_data):
+        """Card contains text-first professional cards grid."""
         html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
-        assert "<svg" in html
-        assert "entity-svg" in html
+        assert "entity-pros" in html
+        assert "entity-pro" in html
 
-    def test_has_central_node(self, jinja_env, showcase_data):
-        """Graph has a central node for the address."""
+    def test_has_professional_roles(self, jinja_env, showcase_data):
+        """Card shows professional roles (Contractor, Engineer, Architect)."""
         html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
-        assert "entity-node-central" in html
-        assert "1 Market St" in html
+        assert "Contractor" in html
+        assert "Engineer" in html
+        assert "Architect" in html
 
-    def test_has_secondary_nodes(self, jinja_env, showcase_data):
-        """Graph has multiple secondary entity nodes."""
+    def test_has_professional_names(self, jinja_env, showcase_data):
+        """Card shows entity names."""
         html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
-        assert "entity-node-secondary" in html
         assert "Arb Inc" in html
+        assert "Pribuss Engineering" in html
+        assert "Gensler" in html
 
-    def test_has_edges_in_teal(self, jinja_env, showcase_data):
-        """Graph edges use accent teal token color."""
+    def test_has_permit_counts(self, jinja_env, showcase_data):
+        """Card shows permit counts for each professional."""
         html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
-        assert "var(--accent)" in html
-        assert "<line" in html
-
-    def test_has_float_animations(self, jinja_env, showcase_data):
-        """Card has float animation classes on nodes."""
-        html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
-        assert "node-float" in html
-
-    def test_has_stats_line(self, jinja_env, showcase_data):
-        """Card shows '63 permits · 12,674 connected projects'."""
-        html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
-        assert "63 permits" in html
         assert "12,674" in html
+        assert "7,309" in html
+        assert "4,821" in html
+
+    def test_has_summary_text(self, jinja_env, showcase_data):
+        """Card has a summary paragraph about the professionals."""
+        html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
+        assert "entity-summary" in html
+        assert "1 Market St" in html
 
     def test_has_ghost_cta_with_correct_link(self, jinja_env, showcase_data):
         """Card has ghost CTA linking to entity-network with address."""
         html = render_component(jinja_env, "components/showcase_entity.html", showcase_data)
         assert "ghost-cta" in html
         assert "/tools/entity-network?address=1+MARKET" in html
-        assert "Explore network" in html
+        assert "Find professionals" in html
 
 
 # ─── Cost of Delay Card ────────────────────────────────────────────────────────
