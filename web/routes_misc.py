@@ -714,6 +714,7 @@ def join_beta_post():
     name = request.form.get("name", "").strip()
     role = request.form.get("role", "").strip()
     interest_address = request.form.get("interest_address", "").strip()
+    mcp_interest = bool(request.form.get("mcp_interest"))
     ref = request.form.get("ref", "").strip()
 
     if not email or "@" not in email:
@@ -737,12 +738,13 @@ def join_beta_post():
         execute_write(
             """
             INSERT INTO beta_requests
-                (email, name, role, interest_address, referrer, ip, status, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, 'pending', NOW())
+                (email, name, role, interest_address, mcp_interest, referrer, ip, status, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'pending', NOW())
             ON CONFLICT (email) DO UPDATE SET
                 name = EXCLUDED.name,
                 role = EXCLUDED.role,
                 interest_address = EXCLUDED.interest_address,
+                mcp_interest = EXCLUDED.mcp_interest,
                 referrer = EXCLUDED.referrer,
                 ip = EXCLUDED.ip
             """,
@@ -751,6 +753,7 @@ def join_beta_post():
                 name or None,
                 role or None,
                 interest_address or None,
+                mcp_interest,
                 ref or None,
                 ip,
             ),
@@ -779,7 +782,8 @@ def join_beta_post():
                 msg["To"] = admin_email
                 msg.set_content(
                     f"Email: {email}\nName: {name}\nRole: {role}\n"
-                    f"Ref: {ref}\nAddress: {interest_address}\nIP: {ip}"
+                    f"Ref: {ref}\nAddress: {interest_address}\n"
+                    f"MCP Interest: {'Yes' if mcp_interest else 'No'}\nIP: {ip}"
                 )
                 with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as srv:
                     srv.starttls()

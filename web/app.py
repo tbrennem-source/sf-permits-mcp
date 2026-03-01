@@ -451,6 +451,7 @@ def _run_startup_migrations():
             "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS role TEXT",
             "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS interest_address TEXT",
             "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS referrer TEXT",
+            "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS mcp_interest BOOLEAN DEFAULT FALSE",
         ]:
             try:
                 cur.execute(_qs13_col)

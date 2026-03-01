@@ -175,7 +175,7 @@
     <a href="/" class="wordmark">sfpermits.ai</a>
 
     <div class="join-card">
-        <h1 class="join-heading">Launching soon</h1>
+        <h1 class="join-heading">Launching <span style="color: var(--accent);">soon</span></h1>
         <p class="join-sub">
             San Francisco's first AI permit intelligence platform.
             Leave your email and we'll let you know when access opens.
@@ -215,7 +215,7 @@
                     <option value="homeowner">Homeowner</option>
                     <option value="contractor">Contractor</option>
                     <option value="architect">Architect</option>
-                    <option value="expediter">Permit Expediter</option>
+                    <option value="consultant">Land Use Consultant</option>
                     <option value="investor">Real Estate Investor</option>
                     <option value="curious">Just Curious</option>
                 </select>
@@ -226,6 +226,11 @@
                 <input class="field-input" type="text" id="jb_address" name="interest_address"
                        placeholder="e.g. 123 Mission St, SF">
             </div>
+
+            <label style="display: flex; align-items: center; gap: var(--space-3); font-family: var(--mono); font-size: var(--text-sm); color: var(--text-secondary); cursor: pointer; margin-top: var(--space-2);">
+                <input type="checkbox" name="mcp_interest" value="1" style="width: 16px; height: 16px; accent-color: var(--accent);">
+                I'm interested in API/MCP access (connect SF permit data to Claude or other AI tools)
+            </label>
 
             <button type="submit" class="submit-btn">Notify me when it launches →</button>
         </form>
