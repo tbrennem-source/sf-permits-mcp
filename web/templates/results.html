@@ -368,6 +368,119 @@
     color: var(--text-tertiary);
 }
 
+/* === Stuck analysis tab === */
+.stuck-severity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 400;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.stuck-severity-badge--critical,
+.stuck-severity-badge--high {
+    color: var(--signal-red);
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.25);
+}
+.stuck-severity-badge--medium,
+.stuck-severity-badge--warning {
+    color: var(--signal-amber);
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.25);
+}
+.stuck-severity-badge--low,
+.stuck-severity-badge--info {
+    color: var(--signal-blue);
+    background: rgba(96, 165, 250, 0.08);
+    border-color: rgba(96, 165, 250, 0.25);
+}
+.stuck-severity-score {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    margin-left: 8px;
+}
+.stuck-section-heading {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 16px 0 8px;
+}
+.stuck-interventions {
+    margin: 0;
+    padding-left: 18px;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+.stuck-interventions li {
+    padding: 3px 0;
+}
+
+/* === Cost of delay tab === */
+.delay-cost-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.delay-cost-cell {
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+}
+.delay-cost-value {
+    font-family: var(--mono);
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--signal-amber);
+    display: block;
+}
+.delay-cost-label {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+    display: block;
+}
+
+/* === Similar projects tab === */
+.similar-project-row {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+.similar-project-row:last-child { border-bottom: none; }
+.similar-project-desc {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 400;
+}
+.similar-project-meta {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+}
+.similar-project-route {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-ghost);
+    margin-top: 3px;
+}
+
 @media print {
     .methodology-card .methodology-body { display: block !important; }
     .methodology-card[open] .methodology-body, .methodology-card:not([open]) .methodology-body { display: block !important; }
@@ -403,20 +516,20 @@
     border: 1px solid;
 }
 .triage-sig-badge--green {
-    color: #22c55e; background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.20);
+    color: var(--dot-green); background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.20);
 }
 .triage-sig-badge--amber {
-    color: #f59e0b; background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.20);
+    color: var(--dot-amber); background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.20);
 }
 .triage-sig-badge--red {
-    color: #ef4444; background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.20);
+    color: var(--dot-red); background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.20);
 }
 .triage-sig-badge__dot {
     width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0;
 }
-.triage-sig-badge--green .triage-sig-badge__dot { background: #22c55e; }
-.triage-sig-badge--amber .triage-sig-badge__dot { background: #f59e0b; }
-.triage-sig-badge--red   .triage-sig-badge__dot { background: #ef4444; }
+.triage-sig-badge--green .triage-sig-badge__dot { background: var(--dot-green); }
+.triage-sig-badge--amber .triage-sig-badge__dot { background: var(--dot-amber); }
+.triage-sig-badge--red   .triage-sig-badge__dot { background: var(--dot-red); }
 .triage-reviewer-label {
     font-family: var(--mono);
     font-size: var(--text-xs);
@@ -424,6 +537,9 @@
 }
 </style>
 {% set triage_signals = triage_signals if triage_signals is defined else [] %}
+{% set stuck_diagnosis = stuck_diagnosis if stuck_diagnosis is defined else None %}
+{% set delay_cost = delay_cost if delay_cost is defined else None %}
+{% set similar_projects = similar_projects if similar_projects is defined else None %}
 {% set TAB_META = {
     "predict": {"label": "Permits", "panel": "panel-predict"},
     "fees": {"label": "Fees", "panel": "panel-fees"},
@@ -483,8 +599,16 @@
     <button class="tab{% if loop.first %} active{% endif %}" data-panel="{{ TAB_META[key].panel }}">{{ TAB_META[key].label }}</button>
     {% endif %}
 {% endfor %}
+{# === T2-B: Stuck Analysis, Cost of Delay, Similar Projects Tab Buttons (conditional) === #}
+{% if stuck_diagnosis %}<button class="tab" data-panel="panel-stuck">Stuck Analysis</button>{% endif %}
+{% if delay_cost %}<button class="tab" data-panel="panel-delay">Cost of Delay</button>{% endif %}
+{# Similar Projects: show if explicit similar_projects data OR always via lazy HTMX #}
+{% if similar_projects is not none %}
+<button class="tab" data-panel="panel-similar">Similar Projects</button>
+{% else %}
 {# === SESSION A: Similar Projects Tab Button (lazy-loaded via HTMX) === #}
 <button class="tab" data-panel="panel-similar">Similar Projects</button>
+{% endif %}
 </div>
 
 {% for key in order %}
@@ -632,6 +756,140 @@
 {% endif %}
 {% endfor %}
 
+{# === T2-B: Stuck Analysis Tab Panel === #}
+{% if stuck_diagnosis %}
+<div id="panel-stuck" class="tab-panel">
+    <div class="result-card">
+        <div style="margin-bottom:16px;">
+            {# Severity badge #}
+            {% set sev_lower = (stuck_diagnosis.severity or 'unknown') | lower %}
+            {% set ns = namespace(badge_mod='low') %}
+            {% if sev_lower in ('critical', 'high') %}
+                {% set ns.badge_mod = 'critical' %}
+            {% elif sev_lower in ('medium', 'warning') %}
+                {% set ns.badge_mod = 'medium' %}
+            {% endif %}
+            <span class="stuck-severity-badge stuck-severity-badge--{{ ns.badge_mod }}">
+                {{ stuck_diagnosis.severity or 'Unknown' }}
+            </span>
+            {% if stuck_diagnosis.severity_score is defined and stuck_diagnosis.severity_score is not none %}
+            <span class="stuck-severity-score">Score: {{ stuck_diagnosis.severity_score }}/100</span>
+            {% endif %}
+        </div>
+
+        {% if stuck_diagnosis.stuck_stations %}
+        <div class="stuck-section-heading">Stuck Stations</div>
+        <table class="station-breakdown">
+            <tr><th>Station</th><th>Days</th><th>Baseline</th><th>Status</th></tr>
+            {% for s in stuck_diagnosis.stuck_stations %}
+            <tr>
+                <td>{{ s.station if s.station is defined else s.get('station', '—') }}</td>
+                <td>{{ s.days if s.days is defined else s.get('days', '—') }}</td>
+                <td>
+                    {% set b = s.baseline_p50 if s.baseline_p50 is defined else s.get('baseline_p50', None) %}
+                    {% if b is not none %}{{ b }}d{% else %}—{% endif %}
+                </td>
+                <td>{{ s.status if s.status is defined else s.get('status', '—') }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+        {% if stuck_diagnosis.interventions %}
+        <div class="stuck-section-heading">Recommended Actions</div>
+        <ol class="stuck-interventions">
+            {% for i in stuck_diagnosis.interventions %}
+            <li>{{ i.action if i.action is defined else i.get('action', i) }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{# === T2-B: Cost of Delay Tab Panel === #}
+{% if delay_cost %}
+<div id="panel-delay" class="tab-panel">
+    <div class="result-card">
+        <div class="delay-cost-grid">
+            <div class="delay-cost-cell">
+                <span class="delay-cost-value">
+                    {% set daily = delay_cost.daily_cost if delay_cost.daily_cost is defined else delay_cost.get('daily_cost', 0) %}
+                    ${{ "%.0f" | format(daily | float) }}
+                </span>
+                <span class="delay-cost-label">per day</span>
+            </div>
+            <div class="delay-cost-cell">
+                <span class="delay-cost-value">
+                    {% set weekly = delay_cost.weekly_cost if delay_cost.weekly_cost is defined else delay_cost.get('weekly_cost', 0) %}
+                    ${{ "%.0f" | format(weekly | float) }}
+                </span>
+                <span class="delay-cost-label">per week</span>
+            </div>
+            <div class="delay-cost-cell">
+                <span class="delay-cost-value">
+                    {% set monthly = delay_cost.monthly_cost if delay_cost.monthly_cost is defined else delay_cost.get('monthly_cost', 0) %}
+                    ${{ "%.0f" | format(monthly | float) }}
+                </span>
+                <span class="delay-cost-label">per month</span>
+            </div>
+        </div>
+
+        {% set scenarios = delay_cost.scenarios if delay_cost.scenarios is defined else delay_cost.get('scenarios', []) %}
+        {% if scenarios %}
+        <div class="stuck-section-heading">Scenario Analysis</div>
+        <table class="cost-delay-table">
+            <tr>
+                <th>Scenario</th>
+                <th class="right">Duration</th>
+                <th class="right">Total Cost</th>
+            </tr>
+            {% for s in scenarios %}
+            <tr>
+                <td>{{ s.label if s.label is defined else s.get('label', '—') }}</td>
+                <td class="right">
+                    {% set mo = s.months if s.months is defined else s.get('months', None) %}
+                    {% if mo is not none %}{{ mo }} months{% else %}—{% endif %}
+                </td>
+                <td class="value-col">
+                    {% set tc = s.total_cost if s.total_cost is defined else s.get('total_cost', 0) %}
+                    ${{ "{:,.0f}".format(tc | float) }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{# === T2-B: Similar Projects Tab Panel (template variable path, when similar_projects is passed directly) === #}
+{% if similar_projects %}
+<div id="panel-similar" class="tab-panel">
+    <div class="result-card">
+        {% for p in similar_projects[:5] %}
+        <div class="similar-project-row">
+            <div class="similar-project-desc">
+                {% set desc = p.description if p.description is defined else p.get('description', '') %}
+                {{ desc[:100] }}{% if desc | length > 100 %}...{% endif %}
+            </div>
+            <div class="similar-project-meta">
+                {% set nbhd = p.neighborhood if p.neighborhood is defined else p.get('neighborhood', None) %}
+                {% set dur = p.duration_days if p.duration_days is defined else p.get('duration_days', None) %}
+                {% set cost = p.estimated_cost if p.estimated_cost is defined else p.get('estimated_cost', 0) %}
+                {% if nbhd %}{{ nbhd }} · {% endif %}
+                {% if dur is not none %}{{ dur }} days · {% endif %}
+                ${{ "{:,.0f}".format((cost or 0) | float) }}
+            </div>
+            {% set route = p.routing_path if p.routing_path is defined else p.get('routing_path', None) %}
+            {% if route %}
+            <div class="similar-project-route">Route: {{ route | join(' → ') }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
 {# === SESSION A: Similar Projects Tab Panel (lazy-loaded via HTMX) === #}
 <div id="panel-similar" class="tab-panel">
     <div class="result-card">
@@ -646,6 +904,7 @@
     </div>
 </div>
 {# === END SESSION A === #}
+{% endif %}{# end similar_projects else #}
 
 {% if analysis_id %}
 <!-- Share actions bar -->
