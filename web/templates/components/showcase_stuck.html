@@ -1,80 +1,128 @@
-{# showcase_stuck.html — Stuck Permit Diagnosis (visual pipeline redesign) #}
-{# Receives: showcase.stuck_permit #}
+{# showcase_stuck.html — Stuck Permit Diagnosis (visual-first redesign) #}
+{# Receives: showcase.stuck_permit (via Jinja2 global from routes_public.py) #}
+{% if showcase and showcase.stuck_permit %}
 {% set stuck = showcase.stuck_permit %}
-<div class="showcase-stuck glass-card"
+<div class="showcase-card showcase-stuck"
      data-track="showcase-view"
-     data-showcase="stuck"
-     style="padding: var(--space-6);">
+     data-showcase="stuck">
   <style>
-    @keyframes pulse-red {
+    @keyframes stuck-pulse {
       0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
-    .severity-pulse {
-      animation: pulse-red 2s ease-in-out infinite;
+      50%       { opacity: 0.35; }
     }
 
-    /* Intelligence label */
-    .stuck-intel-label {
+    /* Card layout */
+    .showcase-stuck { overflow: visible; }
+
+    /* Header row */
+    .stuck-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-5) var(--space-5) 0;
+    }
+    .stuck-permit-id {
       font-family: var(--mono);
       font-size: 10px;
       font-weight: 400;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      letter-spacing: 0.06em;
       color: var(--text-tertiary);
-      margin-bottom: var(--space-3);
+      margin-bottom: var(--space-1);
     }
-
-    /* Headline row */
-    .stuck-headline-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-4);
-      flex-wrap: wrap;
-      margin-bottom: var(--space-5);
-    }
-    .stuck-headline {
+    .stuck-address {
       font-family: var(--mono);
-      font-size: var(--text-xl);
-      font-weight: 400;
-      color: var(--text-primary);
-      margin: 0;
-      letter-spacing: -0.01em;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
     }
-    .stuck-critical-badge {
+    .stuck-severity-badge {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
       font-family: var(--mono);
       font-size: 10px;
       font-weight: 400;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--signal-red);
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      white-space: nowrap;
       flex-shrink: 0;
     }
-    .stuck-critical-dot {
+    .stuck-severity-badge--critical {
+      color: var(--signal-red);
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.22);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .stuck-severity-badge--high {
+      color: var(--signal-amber);
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.22);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .stuck-dot {
       width: 6px;
       height: 6px;
       border-radius: var(--radius-full);
-      background: var(--dot-red);
       flex-shrink: 0;
     }
+    .stuck-dot--critical {
+      background: var(--dot-red);
+      animation: stuck-pulse 2s ease-in-out infinite;
+    }
+    .stuck-dot--high {
+      background: var(--dot-amber);
+    }
 
-    /* Pipeline */
+    /* Hero days stat */
+    .stuck-hero {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5) var(--space-3);
+    }
+    .stuck-days-number {
+      font-family: var(--mono);
+      font-size: clamp(2.5rem, 5vw, 3.25rem);
+      font-weight: 300;
+      color: var(--signal-red);
+      line-height: 1;
+    }
+    .stuck-days-label {
+      font-family: var(--mono);
+      font-size: var(--text-sm);
+      color: var(--text-tertiary);
+      padding-bottom: 6px;
+    }
+    .stuck-block-count {
+      margin-left: auto;
+      text-align: right;
+      padding-bottom: 4px;
+    }
+    .stuck-block-number {
+      font-family: var(--mono);
+      font-size: var(--text-xl);
+      font-weight: 300;
+      color: var(--signal-amber);
+      line-height: 1;
+    }
+    .stuck-block-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    /* Pipeline stations */
     .stuck-pipeline {
       display: flex;
       gap: var(--space-2);
-      margin-bottom: var(--space-5);
+      padding: 0 var(--space-5) var(--space-4);
+      flex-wrap: wrap;
     }
-    .stuck-station-block {
+    .stuck-station {
       flex: 1;
+      min-width: 64px;
       background: var(--obsidian-light);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
@@ -82,115 +130,131 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--space-2);
-      position: relative;
+      gap: var(--space-1);
       text-align: center;
     }
-    .stuck-station-block--blocked {
-      border-color: rgba(239, 68, 68, 0.3);
+    .stuck-station--critical {
+      border-color: rgba(239, 68, 68, 0.30);
       background: rgba(239, 68, 68, 0.04);
+    }
+    .stuck-station--stalled {
+      border-color: rgba(251, 191, 36, 0.25);
+      background: rgba(251, 191, 36, 0.03);
     }
     .stuck-station-abbr {
       font-family: var(--mono);
       font-size: var(--text-xs);
-      font-weight: 400;
       color: var(--text-primary);
       letter-spacing: 0.04em;
     }
-    .stuck-station-icon {
-      font-size: 14px;
-      line-height: 1;
-    }
-    .stuck-station-icon--blocked {
-      color: var(--signal-red);
-    }
-    .stuck-station-icon--clear {
-      color: var(--signal-green);
-    }
-    .stuck-station-meta {
+    .stuck-station-icon--critical { color: var(--signal-red); font-size: 13px; }
+    .stuck-station-icon--stalled  { color: var(--signal-amber); font-size: 13px; }
+    .stuck-station-icon--clear    { color: var(--signal-green); font-size: 13px; }
+    .stuck-station-days {
       font-family: var(--mono);
       font-size: 10px;
-      color: var(--text-tertiary);
-      letter-spacing: 0.02em;
     }
+    .stuck-station-days--critical { color: var(--signal-red); }
+    .stuck-station-days--stalled  { color: var(--signal-amber); }
+    .stuck-station-days--clear    { color: var(--text-tertiary); }
 
-    /* Intervention line */
+    /* Intervention */
     .stuck-intervention {
+      margin: 0 var(--space-5) var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-left: 2px solid rgba(239, 68, 68, 0.40);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3) var(--space-4);
+    }
+    .stuck-intervention-step {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--signal-red);
+      margin-bottom: var(--space-1);
+    }
+    .stuck-intervention-action {
       font-family: var(--sans);
       font-size: var(--text-sm);
       color: var(--text-secondary);
-      padding: var(--space-3) var(--space-4);
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-sm);
-      margin-bottom: var(--space-5);
-    }
-    .stuck-intervention strong {
-      color: var(--text-primary);
-      font-weight: 400;
+      line-height: 1.5;
     }
 
-    /* CTA row */
-    .stuck-cta-row {
-      padding-top: var(--space-4);
+    /* Footer */
+    .stuck-footer {
+      padding: var(--space-3) var(--space-5) var(--space-4);
       border-top: 1px solid var(--glass-border);
       display: flex;
       justify-content: flex-end;
     }
-
-    @media (max-width: 420px) {
-      .stuck-pipeline {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-2);
-      }
-    }
   </style>
 
-  {# Intelligence label #}
-  <div class="stuck-intel-label">Diagnostic Intelligence</div>
-
-  {# Headline + severity badge #}
-  <div class="stuck-headline-row">
-    <h3 class="stuck-headline">{{ stuck.days_stuck }} days · {{ stuck.block_count }} agencies blocked</h3>
-    <span class="stuck-critical-badge">
-      <span class="stuck-critical-dot severity-pulse"></span>
-      {{ stuck.severity }}
+  {# Header: permit ID + address + severity badge #}
+  <div class="stuck-header">
+    <div>
+      <div class="stuck-permit-id">{{ stuck.permit }}</div>
+      <div class="stuck-address">{{ stuck.address }}</div>
+    </div>
+    {% set sev = (stuck.severity or stuck.severity_tier or 'HIGH') | upper %}
+    <span class="stuck-severity-badge {{ 'stuck-severity-badge--critical' if sev == 'CRITICAL' else 'stuck-severity-badge--high' }}">
+      <span class="stuck-dot {{ 'stuck-dot--critical' if sev == 'CRITICAL' else 'stuck-dot--high' }}"></span>
+      {{ sev }}
     </span>
   </div>
 
-  {# Visual pipeline — 4 station blocks #}
+  {# Hero: days stuck + block count #}
+  <div class="stuck-hero">
+    <div class="stuck-days-number">{{ stuck.days_stuck }}</div>
+    <div class="stuck-days-label">days stuck</div>
+    {% if stuck.block_count %}
+    <div class="stuck-block-count">
+      <div class="stuck-block-number">{{ stuck.block_count }}</div>
+      <div class="stuck-block-label">agencies blocked</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# Pipeline station blocks #}
+  {% if stuck.blocks %}
   <div class="stuck-pipeline">
     {% for block in stuck.blocks %}
-    <div class="stuck-station-block {{ 'stuck-station-block--blocked' if block.status in ['critically_stalled', 'stalled', 'comments'] else '' }}">
+    {% set is_critical = block.status in ['critically_stalled'] %}
+    {% set is_stalled  = block.status in ['stalled', 'comments'] %}
+    <div class="stuck-station {{ 'stuck-station--critical' if is_critical else ('stuck-station--stalled' if is_stalled else '') }}">
       <span class="stuck-station-abbr">{{ block.station }}</span>
-      <span class="stuck-station-icon {{ 'stuck-station-icon--blocked' if block.status in ['critically_stalled', 'stalled', 'comments'] else 'stuck-station-icon--clear' }}">
-        {{ '✗' if block.status in ['critically_stalled', 'stalled', 'comments'] else '✓' }}
+      <span class="{{ 'stuck-station-icon--critical' if is_critical else ('stuck-station-icon--stalled' if is_stalled else 'stuck-station-icon--clear') }}">
+        {{ '✗' if (is_critical or is_stalled) else '✓' }}
       </span>
-      <span class="stuck-station-meta">
-        {%- if block.dwell_days and block.dwell_days > 0 -%}
-          {{ block.dwell_days }}d
-        {%- elif block.round -%}
-          {{ block.round | truncate(12, True, '') }}
-        {%- endif -%}
+      <span class="stuck-station-days {{ 'stuck-station-days--critical' if is_critical else ('stuck-station-days--stalled' if is_stalled else 'stuck-station-days--clear') }}">
+        {{ block.dwell_days }}d
       </span>
     </div>
     {% endfor %}
   </div>
+  {% endif %}
 
-  {# First intervention only #}
+  {# First intervention step #}
   {% if stuck.playbook %}
   {% set first = stuck.playbook[0] %}
   <div class="stuck-intervention">
-    <strong>Step 1:</strong> {{ first.action | truncate(80, True, '…') }}
+    <div class="stuck-intervention-step">{{ first.priority }} — Step {{ first.step }}</div>
+    <div class="stuck-intervention-action">{{ first.action | truncate(90, True, '…') }}</div>
   </div>
   {% endif %}
 
-  {# CTA #}
-  <div class="stuck-cta-row">
+  <div class="stuck-footer">
     <a href="/tools/stuck-permit?permit={{ stuck.permit }}"
-       class="ghost-cta"
+       class="showcase-card__cta"
        data-track="showcase-click"
        data-showcase="stuck">See full playbook →</a>
   </div>
 </div>
+{% else %}
+<div class="showcase-card" style="padding: var(--space-6);">
+  <div style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-tertiary); font-style: italic;">
+    Live permit data unavailable
+  </div>
+</div>
+{% endif %}
