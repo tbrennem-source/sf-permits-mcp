@@ -428,3 +428,76 @@ Three-tier enum: `FREE` (search, landing), `AUTHENTICATED` (analyze, brief, port
 - Feature registry maps 14 features to minimum tier
 - `@app.context_processor` injects `gate` dict into all templates
 - Nav items show greyed "Sign up" badges for locked features
+
+## Decision 10: Tailwind v4 + Alpine.js for Dark Factory at Scale
+
+**Date:** 2026-03-01
+**Status:** Decided — Adopt Tailwind v4 + Alpine.js for all new pages, migrate on touch
+
+### Context
+
+Custom CSS tokens (DESIGN_TOKENS.md) served well through Sprint 69 but became a bottleneck:
+- 26 hand-maintained components with copy-paste HTML/CSS
+- Every sprint agent re-interprets token specs differently
+- Design lint catches violations but doesn't prevent them
+- New page builds take 2-3x longer than utility-first approach
+
+### Decision
+
+- **New pages**: Tailwind v4 (CDN for mockups, build pipeline for prod) + Alpine.js for interactivity
+- **Existing pages**: Convert on touch (when a page is modified for feature work, migrate it)
+- **ECharts** for product page data visualizations (not D3 — too complex for agent builds)
+- **Custom CSS tokens remain authoritative** for obsidian palette colors, font families, and brand identity
+- Tailwind config extends with our token colors/fonts — single source of truth
+
+### Rationale
+
+- Agent throughput: Tailwind utility classes are self-documenting — no "did I use the right token?" question
+- Alpine.js replaces ad-hoc JS/jQuery for interactive elements (toggles, dropdowns, tabs)
+- Mockup → production gap closes: Tailwind in mockups = same CSS in production
+
+## Decision 11: Honeypot Data Strategy — Curated Real Data
+
+**Date:** 2026-03-01
+**Status:** Decided
+
+### Context
+
+The landing page showcases real SF permit data to demonstrate product value. Options:
+1. Live-dynamic (query on every page load)
+2. Fake/synthetic data
+3. Curated real data, refreshed periodically
+
+### Decision
+
+**Curated real data, refreshed nightly.** Not fake, not live-dynamic.
+
+### Rules
+
+- **Anonymization**: Professional names shown (public record). Individual homeowner names anonymized on public/honeypot pages.
+- **Environment borders**: staging=amber outline, honeypot=red outline, prod=none. Prevents accidentally thinking you're on prod.
+- **Persona color coding**: QA navigation uses persona colors (homeowner=teal, architect=purple, expediter=amber, new-visitor=pink).
+- **HONEYPOT_MODE env var**: 0=disabled (current), 1=enabled. Controls whether landing page shows curated data or generic demo.
+
+## Decision 12: Landing Page Data Claims Must Be Defensible
+
+**Date:** 2026-03-01
+**Status:** Decided
+
+### Context
+
+QS13 preflight cost data validation found:
+- "73% of kitchen remodels get sent back" — actual code shows 12% revision probability
+- "$847/day commercial carrying cost" — illustrative only, no economic model
+- "47 permits stalled at SFPUC" — placeholder, real queue data exists but isn't wired
+- "4.2 months average kitchen remodel" — unit mismatch (p50=21 days)
+
+### Decision
+
+All public-facing data claims must be:
+1. **Sourced from actual DB queries** or clearly marked as illustrative examples
+2. **Within 2x of real data** — 73% vs 12% is a 6x overstatement, unacceptable
+3. **Labeled with source** — "Based on 1.1M permits" footer on each data card
+4. **Refreshed nightly** — not static mockup numbers that drift from reality
+
+Placeholder numbers are acceptable in mockups during development (HONEYPOT_MODE=0) but must be replaced with real queries before HONEYPOT_MODE=1.

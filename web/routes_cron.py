@@ -350,7 +350,13 @@ def cron_nightly():
                 ADMIN_EMAILS.update(
                     a["email"].lower() for a in get_admin_users() if a.get("email")
                 )
-                host = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost:5001")
+                # Use TRIAGE_API_HOST to reach the web app (not the cron worker).
+                # The cron worker blocks /api/* routes, so triage must hit the
+                # web app's public domain instead.
+                host = os.environ.get(
+                    "TRIAGE_API_HOST",
+                    os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost:5001"),
+                )
                 return run_triage(host, os.environ.get("CRON_SECRET", ""))
             triage_result = _timed_step("triage", _run_triage)
 

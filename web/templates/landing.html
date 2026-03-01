@@ -990,8 +990,8 @@
 
 <section class="story-section reveal">
   <div class="section-inner">
-    <p class="story-headline">This permit has been stuck for 432 days. Is yours next?</p>
-    {% if showcase and showcase.get("stuck_permit") %}{% include "components/showcase_stuck.html" %}{% endif %}
+    <p class="story-headline">1 in 4 permits gets sent back for revisions</p>
+    {% if showcase and showcase.get("revision_risk") %}{% include "components/showcase_risk.html" %}{% endif %}
   </div>
 </section>
 
@@ -1004,8 +1004,8 @@
 
 <section class="story-section reveal">
   <div class="section-inner">
-    <p class="story-headline">1 in 4 permits gets sent back for revisions</p>
-    {% if showcase and showcase.get("revision_risk") %}{% include "components/showcase_risk.html" %}{% endif %}
+    <p class="story-headline">This permit has been stuck for 432 days. Is yours next?</p>
+    {% if showcase and showcase.get("stuck_permit") %}{% include "components/showcase_stuck.html" %}{% endif %}
   </div>
 </section>
 

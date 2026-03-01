@@ -127,7 +127,7 @@ def _get_watchers_for_change(change: dict) -> list[dict]:
     ph = _ph()
     rows = query(
         f"SELECT u.user_id, u.email, "
-        f"  COALESCE(u.notify_email, u.email) AS notify_to "
+        f"  COALESCE(NULLIF(u.notify_email, ''), u.email) AS notify_to "
         f"FROM users u "
         f"JOIN watch_items w ON u.user_id = w.user_id "
         f"WHERE u.notify_permit_changes = TRUE "

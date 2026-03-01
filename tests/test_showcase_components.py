@@ -230,28 +230,31 @@ class TestShowcaseEntity:
         html = render(env, self.TEMPLATE, context)
         assert '1 Market St' in html
 
-    def test_contains_permit_count(self, env, context):
+    def test_contains_professional_names(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert '63' in html
-
-    def test_contains_node_labels(self, env, context):
-        html = render(env, self.TEMPLATE, context)
-        assert 'Hathaway Dinwiddie' in html
+        assert 'Arb Inc' in html
         assert 'Gensler' in html
+        assert 'Pribuss Engineering' in html
+
+    def test_contains_permit_counts(self, env, context):
+        html = render(env, self.TEMPLATE, context)
+        assert '12,674' in html
+        assert '7,309' in html
 
     def test_ghost_cta_link(self, env, context):
         html = render(env, self.TEMPLATE, context)
         assert '/tools/entity-network' in html
-        assert '1+Market+St' in html or '1 Market St' in html
+        assert '1+MARKET' in html or '1 Market St' in html
 
     def test_data_track_attributes(self, env, context):
         html = render(env, self.TEMPLATE, context)
         assert 'data-track="showcase-view"' in html
         assert 'data-showcase="entity"' in html
 
-    def test_svg_present(self, env, context):
+    def test_has_professional_cards_grid(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert '<svg' in html
+        assert 'entity-pros' in html
+        assert 'entity-pro' in html
 
 
 # ---------------------------------------------------------------------------

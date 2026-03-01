@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sfpermits.ai — Admin Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        obsidian:    { DEFAULT: '#0a0a0f', mid: '#12121a', light: '#1a1a26' },
+        glass:       { DEFAULT: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.06)', hover: 'rgba(255,255,255,0.08)' },
+        accent:      { DEFAULT: '#5eead4', glow: 'rgba(94,234,212,0.08)', ring: 'rgba(94,234,212,0.2)' },
+        signal:      { green: '#4ade80', amber: '#fbbf24', red: '#f87171' },
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['IBM Plex Sans', '-apple-system', 'sans-serif'],
+      },
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+  body { -webkit-font-smoothing: antialiased; }
+  @keyframes pulse-dot { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+  .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+</style>
+</head>
+
+<body class="bg-obsidian text-white/90 font-sans min-h-screen">
+
+<!-- ═══ TOP BAR ═══ -->
+<header class="border-b border-glass-border px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-4">
+    <span class="font-mono text-xs tracking-[0.2em] uppercase text-white/25">sfpermits.ai</span>
+    <span class="font-mono text-xs text-accent">admin</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <span class="font-mono text-[10px] text-white/25">tim@sfpermits.ai</span>
+    <a href="#" class="font-mono text-[10px] text-white/25 hover:text-accent transition-colors">logout</a>
+  </div>
+</header>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="max-w-[1200px] mx-auto px-6 py-8" x-data="adminDashboard()">
+
+  <!-- ─── SYSTEM HEALTH ROW ─── -->
+  <div class="mb-8">
+    <div class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25 mb-3">system health</div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <!-- Cron -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4 hover:bg-glass-hover transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full" :class="cron.status === 'ok' ? 'bg-signal-green pulse-dot' : 'bg-signal-red pulse-dot'"></span>
+          <span class="font-mono text-[10px] text-white/45 uppercase tracking-wide">Nightly Cron</span>
+        </div>
+        <div class="font-mono text-lg font-light" :class="cron.status === 'ok' ? 'text-signal-green' : 'text-signal-red'" x-text="cron.age"></div>
+        <div class="font-mono text-[9px] text-white/25 mt-1" x-text="cron.lastRun"></div>
+      </div>
+
+      <!-- DB -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4 hover:bg-glass-hover transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-signal-green pulse-dot"></span>
+          <span class="font-mono text-[10px] text-white/45 uppercase tracking-wide">Database</span>
+        </div>
+        <div class="font-mono text-lg font-light text-white/90" x-text="db.tables + ' tables'"></div>
+        <div class="font-mono text-[9px] text-white/25 mt-1" x-text="db.rows"></div>
+      </div>
+
+      <!-- API Cost -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4 hover:bg-glass-hover transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full" :class="costs.pct < 80 ? 'bg-signal-green' : costs.pct < 95 ? 'bg-signal-amber' : 'bg-signal-red'"></span>
+          <span class="font-mono text-[10px] text-white/45 uppercase tracking-wide">API Budget</span>
+        </div>
+        <div class="font-mono text-lg font-light text-white/90" x-text="'$' + costs.today"></div>
+        <div class="font-mono text-[9px] text-white/25 mt-1" x-text="costs.pct + '% of daily limit'"></div>
+      </div>
+
+      <!-- Data Freshness -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4 hover:bg-glass-hover transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full" :class="data.gaps === 0 ? 'bg-signal-green' : 'bg-signal-amber pulse-dot'"></span>
+          <span class="font-mono text-[10px] text-white/45 uppercase tracking-wide">Data Gaps</span>
+        </div>
+        <div class="font-mono text-lg font-light" :class="data.gaps === 0 ? 'text-signal-green' : 'text-signal-amber'" x-text="data.gaps === 0 ? 'None' : data.gaps + ' days'"></div>
+        <div class="font-mono text-[9px] text-white/25 mt-1" x-text="'Last 7 days checked'"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TWO-COLUMN LAYOUT ─── -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- LEFT COLUMN (2/3) -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- DATA INGEST SUMMARY -->
+      <div class="bg-glass border border-glass-border rounded-lg overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-glass-border">
+          <span class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25">last nightly ingest</span>
+          <button class="font-mono text-[10px] text-accent hover:underline cursor-pointer">run now</button>
+        </div>
+        <div class="grid grid-cols-3 md:grid-cols-6 divide-x divide-glass-border">
+          <template x-for="item in ingestStats" :key="item.label">
+            <div class="p-3 text-center">
+              <div class="font-mono text-sm font-light text-white/90" x-text="item.count"></div>
+              <div class="font-mono text-[9px] text-white/25 mt-0.5" x-text="item.label"></div>
+            </div>
+          </template>
+        </div>
+        <div class="px-4 py-2 border-t border-glass-border flex items-center justify-between">
+          <span class="font-mono text-[9px] text-white/20" x-text="'Pipeline: ' + pipeline.elapsed + 's · ' + pipeline.steps + ' steps'"></span>
+          <span class="font-mono text-[9px]" :class="pipeline.errors > 0 ? 'text-signal-amber' : 'text-white/20'" x-text="pipeline.errors + ' non-fatal errors'"></span>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY TABLE -->
+      <div class="bg-glass border border-glass-border rounded-lg overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-glass-border">
+          <span class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25">recent activity</span>
+          <a href="/admin/activity" class="font-mono text-[10px] text-white/25 hover:text-accent transition-colors">view all</a>
+        </div>
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-glass-border">
+              <th class="text-left px-4 py-2 font-mono text-[9px] font-normal text-white/25 uppercase tracking-wide">User</th>
+              <th class="text-left px-4 py-2 font-mono text-[9px] font-normal text-white/25 uppercase tracking-wide">Action</th>
+              <th class="text-right px-4 py-2 font-mono text-[9px] font-normal text-white/25 uppercase tracking-wide">When</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="a in activity" :key="a.time">
+              <tr class="border-b border-white/[0.03] hover:bg-glass-hover transition-colors">
+                <td class="px-4 py-2 font-mono text-[11px] text-white/70" x-text="a.user"></td>
+                <td class="px-4 py-2 font-sans text-[11px] text-white/45" x-text="a.action"></td>
+                <td class="px-4 py-2 font-mono text-[10px] text-white/25 text-right" x-text="a.time"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FEEDBACK QUEUE -->
+      <div class="bg-glass border border-glass-border rounded-lg overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-glass-border">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25">feedback queue</span>
+            <span class="font-mono text-[9px] bg-signal-amber/10 text-signal-amber px-1.5 py-px rounded" x-text="feedback.length + ' pending'"></span>
+          </div>
+          <a href="/admin/feedback" class="font-mono text-[10px] text-white/25 hover:text-accent transition-colors">manage</a>
+        </div>
+        <template x-for="f in feedback" :key="f.id">
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.03] hover:bg-glass-hover transition-colors group">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="f.type === 'bug' ? 'bg-signal-red' : f.type === 'feature' ? 'bg-accent' : 'bg-signal-amber'"></span>
+              <span class="font-sans text-[11px] text-white/70 truncate" x-text="f.message"></span>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="font-mono text-[9px] text-white/25" x-text="f.page"></span>
+              <span class="font-mono text-[9px] text-white/25" x-text="f.age"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN (1/3) -->
+    <div class="space-y-6">
+
+      <!-- USERS -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4">
+        <div class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25 mb-3">users</div>
+        <div class="space-y-3">
+          <div class="flex justify-between items-baseline">
+            <span class="font-sans text-[11px] text-white/45">Total accounts</span>
+            <span class="font-mono text-sm text-white/90" x-text="users.total"></span>
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="font-sans text-[11px] text-white/45">Active (7d)</span>
+            <span class="font-mono text-sm text-white/90" x-text="users.active7d"></span>
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="font-sans text-[11px] text-white/45">Beta requests</span>
+            <span class="font-mono text-sm" :class="users.betaPending > 0 ? 'text-accent' : 'text-white/90'" x-text="users.betaPending"></span>
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="font-sans text-[11px] text-white/45">Watchers</span>
+            <span class="font-mono text-sm text-white/90" x-text="users.watchers"></span>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-glass-border">
+          <a href="/admin/beta-requests" class="font-mono text-[10px] text-accent hover:underline">Review beta requests</a>
+        </div>
+      </div>
+
+      <!-- QUICK LINKS -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4">
+        <div class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25 mb-3">admin tools</div>
+        <div class="space-y-1">
+          <a href="/admin/feedback" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Feedback
+          </a>
+          <a href="/admin/activity" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Activity Log
+          </a>
+          <a href="/admin/ops" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Operations
+          </a>
+          <a href="/admin/costs" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> API Costs
+          </a>
+          <a href="/admin/pipeline" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Pipeline Health
+          </a>
+          <a href="/admin/metrics" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Metrics
+          </a>
+          <a href="/admin/qa" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> QA Runs
+          </a>
+          <a href="/admin/sources" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Data Sources
+          </a>
+          <a href="/admin/regulatory-watch" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Regulatory Watch
+          </a>
+          <a href="/admin/perf" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-glass-hover transition-colors font-mono text-[11px] text-white/45 hover:text-accent">
+            <span class="w-1 h-1 rounded-full bg-white/15"></span> Performance
+          </a>
+        </div>
+      </div>
+
+      <!-- DEPLOY STATUS -->
+      <div class="bg-glass border border-glass-border rounded-lg p-4">
+        <div class="font-mono text-[10px] tracking-[0.12em] uppercase text-white/25 mb-3">deploy</div>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-signal-green pulse-dot"></span>
+              <span class="font-mono text-[10px] text-white/45">prod</span>
+            </div>
+            <span class="font-mono text-[9px] text-white/25" x-text="deploy.prod"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-signal-green pulse-dot"></span>
+              <span class="font-mono text-[10px] text-white/45">staging</span>
+            </div>
+            <span class="font-mono text-[9px] text-white/25" x-text="deploy.staging"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-signal-green pulse-dot"></span>
+              <span class="font-mono text-[10px] text-white/45">mcp-api</span>
+            </div>
+            <span class="font-mono text-[9px] text-white/25" x-text="deploy.mcp"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function adminDashboard() {
+  return {
+    // System Health
+    cron: { status: 'ok', age: '4h 12m', lastRun: 'Today 3:02 AM PT' },
+    db: { tables: 59, rows: '5.6M rows · 2.05 GB' },
+    costs: { today: '2.14', pct: 12 },
+    data: { gaps: 0 },
+
+    // Ingest
+    ingestStats: [
+      { label: 'permits', count: '563' },
+      { label: 'inspections', count: '239' },
+      { label: 'addenda', count: '1,264' },
+      { label: 'planning', count: '47' },
+      { label: 'signals', count: '312' },
+      { label: 'velocity', count: '8 stations' },
+    ],
+    pipeline: { elapsed: '38.2', steps: 14, errors: 1 },
+
+    // Activity
+    activity: [
+      { user: 'amy@sfexpedite.com', action: 'Searched 455 Valencia St', time: '2m ago' },
+      { user: 'tim@sfpermits.ai', action: 'Viewed admin/costs', time: '1h ago' },
+      { user: 'sarah@architect.io', action: 'Uploaded plan analysis', time: '3h ago' },
+      { user: 'system', action: 'Nightly completed (563 permits)', time: '5h ago' },
+      { user: 'mike@contractor.sf', action: 'Added watch: 123 Main St', time: '8h ago' },
+    ],
+
+    // Feedback
+    feedback: [
+      { id: 1, type: 'bug', message: 'Search timeout on large block/lot queries', page: '/search', age: '2d' },
+      { id: 2, type: 'feature', message: 'Add revision history to property report', page: '/property', age: '3d' },
+      { id: 3, type: 'qa_note', message: 'Mobile nav overlap on landing', page: '/', age: '5d' },
+    ],
+
+    // Users
+    users: { total: 24, active7d: 8, betaPending: 2, watchers: 12 },
+
+    // Deploy
+    deploy: {
+      prod: '2h ago · 14bac9c',
+      staging: '45m ago · 4fd7372',
+      mcp: '2h ago · 21aaefc',
+    },
+  }
+}
+</script>
+</body>
+</html>

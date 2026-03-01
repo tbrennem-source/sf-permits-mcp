@@ -600,6 +600,8 @@ def detect_addenda_changes(soda_records: list[dict], dry_run: bool = False,
             continue
 
         soda_pk = record.get("primary_key")
+        if not soda_pk:
+            continue  # Skip records with null primary_key from SODA
         new_review_results = (record.get("review_results") or "").strip() or None
         finish_date = record.get("finish_date")
         station = (record.get("station") or "").strip() or None
