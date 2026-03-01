@@ -31,6 +31,8 @@ async def list_feedback(
 ) -> str:
     """Query user feedback submitted to sfpermits.ai.
 
+    Requires professional or unlimited scope. Not available to demo users.
+
     Returns feedback items from the queue, useful for:
     - Morning briefings: "What did users report this week?"
     - Planning sessions: "What bugs are open?"
@@ -47,6 +49,10 @@ async def list_feedback(
     Returns:
         Markdown-formatted feedback list with counts by status and type.
     """
+    import os
+    if os.environ.get("MCP_RESTRICT_FEEDBACK", "0") == "1":
+        return "Insufficient permissions: list_feedback requires professional or unlimited scope. Upgrade at https://sfpermits.ai/pricing"
+
     limit = min(max(1, limit), 200)
 
     conditions: list[str] = []
