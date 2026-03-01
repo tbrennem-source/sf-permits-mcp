@@ -1,5 +1,43 @@
 # Changelog
 
+## QS12 — Demo-Ready: Visual Intelligence (2026-02-28)
+
+16 agents across 4 terminals. 78 files changed, 10,230 insertions, 439 new tests.
+
+### T1 — Landing Showcase Visual Redesign (Sprint 94)
+- Gantt chart promoted to full-width hero position with "Routing Intelligence" label
+- Stats bar killed, replaced with one-line credibility footnote
+- 5 showcase cards in responsive 3/2/1 grid below Gantt
+- Stuck permit card: pulsing CRITICAL badge + 4-station visual pipeline (was text dump)
+- What-If card: green/amber two-column contrast with big numbers
+- Revision Risk card: SVG circular arc gauge at 24.6%
+- Entity Network card: SVG node graph with float animations
+- Cost of Delay card: "$500/day" hero number
+- MCP demo: fixed querySelector bug (was targeting wrong bubble)
+
+### T2 — Vision-Guided Page UX Fixes (Sprint 95)
+- Search results: ISO timestamps → formatted dates, permit types → title case
+- Tool pages: pre-fill verified, stall banners, phone number linkification
+- Revision risk page fully rebuilt (broken style tag was rendering CSS as text)
+- Security: removed exposed invite code from public /demo CTA
+
+### T3 — Amy's "I Need This" Features (Sprint 96)
+- All 6 tool routes now publicly accessible (auth walls removed for demo data)
+- Days-at-station triage badges on search results (green/amber/red color coding)
+- Reviewer names visible on public search result cards
+- Question queries ("Do I need a permit?") route to AI guidance, not empty results
+- Permit number clicks → internal station predictor (DBI link moved to secondary)
+- Landing: "Beta Tester" badge, arrow opacity fix, property navigation fix
+
+### T4 — Mobile + Demo Script + Notifications (Sprint 97)
+- Ghost CTAs: 19px → 35px touch targets (tappable on phone)
+- MCP demo dots: 8px → 32px (visible + tappable)
+- Landing page mobile navigation bar (was missing entirely)
+- /demo overflow fixed at 375px
+- NEW: /demo/guided — self-guided stakeholder walkthrough page
+- NEW: scripts/notify.sh — 5 differentiated sounds for sprint workflow events
+- NEW: .claude/hooks/notify-events.sh — automatic event detection
+
 ## QS11 — Intelligence-Forward Beta (2026-02-28)
 
 16 agents across 4 terminals. 81 files changed, 17,860 insertions, 544 new tests.
