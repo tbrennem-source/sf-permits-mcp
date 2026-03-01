@@ -1271,6 +1271,62 @@
             {% endif %}
         </div>
 
+        {# === QS14: Stuck Alerts === #}
+        {% if brief.stuck_alerts %}
+        <div class="brief-section reveal reveal-delay-3" id="section-stuck">
+            <div class="brief-section__title brief-section__title--alert">Stuck Permits — {{ brief.stuck_alerts | length }}</div>
+            {% for alert in brief.stuck_alerts %}
+            <div class="aq-item">
+                {% if alert.severity == 'CRITICAL' %}
+                <span class="aq-item__dot aq-item__dot--red"></span>
+                {% else %}
+                <span class="aq-item__dot aq-item__dot--amber"></span>
+                {% endif %}
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">
+                        <a href="/?q={{ alert.permit_number }}">{{ alert.permit_number }}</a>
+                    </div>
+                    <div class="aq-item__detail">
+                        Stuck at <strong style="color: var(--text-secondary);">{{ alert.station }}</strong> &middot; {{ alert.days }}d elapsed
+                    </div>
+                    {% if alert.action %}
+                    <div class="aq-item__detail" style="margin-top: var(--space-1);">
+                        &rarr; {{ alert.action }}
+                    </div>
+                    {% endif %}
+                    <div class="aq-item__actions">
+                        <a href="/?q={{ alert.permit_number }}" class="aq-action">View permit</a>
+                    </div>
+                </div>
+                <span class="status-badge {% if alert.severity == 'CRITICAL' %}status-expired{% else %}status-behind{% endif %}" style="flex-shrink: 0; margin-top: 2px;">{{ alert.severity }}</span>
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# === QS14: Delay Cost Alerts === #}
+        {% if brief.delay_alerts %}
+        <div class="brief-section reveal reveal-delay-3" id="section-delay-cost">
+            <div class="brief-section__title">Delay Cost Impact — {{ brief.delay_alerts | length }} permits</div>
+            {% for alert in brief.delay_alerts %}
+            <div class="aq-item">
+                <span class="aq-item__dot aq-item__dot--amber"></span>
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">
+                        <a href="/?q={{ alert.permit_number }}">{{ alert.permit_number }}</a>
+                    </div>
+                    <div class="aq-item__detail">
+                        <span style="font-family: var(--mono); color: var(--signal-amber);">${{ "%.0f"|format(alert.daily_cost) }}/day</span>
+                        &middot; ${{ "%.0f"|format(alert.weekly_cost) }}/week carrying cost
+                    </div>
+                </div>
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- ── REGULATORY WATCH ── -->
         {% if brief.regulatory_alerts %}
         <div class="brief-section reveal reveal-delay-3">
