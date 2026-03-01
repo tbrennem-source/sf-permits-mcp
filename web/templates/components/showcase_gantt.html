@@ -178,6 +178,8 @@
   <p class="gantt-desc">{{ gantt.description }}</p>
 
   <div class="gantt-grid" id="gantt-grid-{{ gantt.permit }}">
+    {% set current_stations = gantt.stations | selectattr('is_current') | list %}
+    {% set last_current = current_stations[-1] if current_stations else None %}
     {% for station in gantt.stations %}
     <div class="gantt-label" title="{{ station.label or station.name }}">{{ station.name }}</div>
     <div class="gantt-track">
@@ -185,9 +187,9 @@
            data-start="{{ station.start_month }}"
            data-width="{{ station.width_pct }}"
            style="left: {{ station.start_month / 6 * 100 }}%; width: {{ station.width_pct }}%;"
-           title="{{ station.reviewer }}{% if station.dwell_days %} · {{ station.dwell_days }} days{% endif %}{% if station.get('is_current') %} · current station{% endif %}">
+           title="{{ station.reviewer or 'Pending' }}{% if station.dwell_days %} · {{ station.dwell_days }} days{% endif %}{% if station.get('is_current') %} · current station{% endif %}">
         <span class="gantt-bar-reviewer">{{ station.reviewer }}</span>
-        {% if station.get('is_current') %}
+        {% if station == last_current %}
         <span class="gantt-you-are-here">you are here</span>
         {% endif %}
       </div>
