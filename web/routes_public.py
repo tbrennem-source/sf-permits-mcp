@@ -49,17 +49,31 @@ bp = Blueprint("public", __name__)
 # Index
 # ---------------------------------------------------------------------------
 
+DEFAULT_SHOWCASE = {
+    "station_timeline": None,
+    "stuck_permit": None,
+    "what_if": None,
+    "revision_risk": None,
+    "entity_network": None,
+    "cost_of_delay": None,
+}
+
+
 def _load_showcase_data():
-    """Load showcase_data.json for landing page cards. Returns {} on any error."""
+    """Load showcase_data.json for landing page cards. Returns defaults on any error."""
     showcase_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "web", "static", "data", "showcase_data.json",
     )
     try:
         with open(showcase_path) as f:
-            return json.load(f)
+            data = json.load(f)
+        # Ensure all expected keys exist; unknown extra keys (e.g. 'whatif') pass through
+        result = dict(DEFAULT_SHOWCASE)
+        result.update(data)
+        return result
     except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return {}
+        return dict(DEFAULT_SHOWCASE)
 
 
 @bp.route("/")
