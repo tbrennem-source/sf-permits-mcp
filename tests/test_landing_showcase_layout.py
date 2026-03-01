@@ -1,13 +1,13 @@
-"""Tests for Sprint 94 landing page showcase layout restructure.
+"""Tests for Sprint 94+ landing page showcase layout.
 
 Verifies:
 - Stats bar removed (no "1,137,816" or old stat labels)
 - Credibility line present at page bottom
-- Full-width Gantt section exists outside the showcase grid
-- 5-card grid (stuck, whatif, risk, entity, delay) present
+- Full-width Gantt section exists as the first intelligence section
+- Story scroll sections replace the 5-card grid (QS13 redesign)
 - Routing Intelligence label on Gantt section
-- Responsive grid CSS present
-- showcase_gantt is NOT inside .showcase-grid
+- Responsive CSS present
+- showcase_gantt is NOT inside a grid
 """
 
 import pytest
@@ -124,74 +124,65 @@ class TestGanttFullWidth:
         assert 'id="intelligence"' in html
 
 
-# ── 5-card showcase grid ─────────────────────────────────────────────────────
+# ── Story scroll sections (QS13 redesign — replaced 5-card grid) ─────────────
 
 class TestShowcaseGrid:
     def test_showcase_grid_exists(self, client):
-        """showcase-grid element is present in the page."""
+        """story-section elements are present in the page (replaced showcase-grid)."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert "showcase-grid" in html
+        assert "story-section" in html
 
     def test_showcase_grid_has_id(self, client):
-        """showcase-grid has id='showcase-grid' for targeting."""
+        """story-cta-section (join beta CTA) is present in the page."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert 'id="showcase-grid"' in html
+        assert "story-cta-section" in html
 
     def test_gantt_not_inside_showcase_grid(self, client):
-        """Gantt component (showcase-gantt-section) appears before showcase-grid in markup order."""
+        """Gantt component (showcase-gantt-section) appears before story sections in markup order."""
         rv = client.get("/")
         html = rv.data.decode()
         gantt_pos = html.find("showcase-gantt-section")
-        grid_pos = html.find('id="showcase-grid"')
+        story_pos = html.find("story-section")
         assert gantt_pos != -1, "showcase-gantt-section not found"
-        assert grid_pos != -1, "id=showcase-grid not found"
-        # Gantt section must appear BEFORE the 5-card grid in source order
-        assert gantt_pos < grid_pos, (
-            f"Gantt section (pos {gantt_pos}) should appear before showcase-grid (pos {grid_pos})"
+        assert story_pos != -1, "story-section not found"
+        # Gantt section must appear BEFORE the story sections
+        assert gantt_pos < story_pos, (
+            f"Gantt section (pos {gantt_pos}) should appear before story sections (pos {story_pos})"
         )
 
     def test_five_showcases_in_grid(self, client):
-        """showcase-grid contains 5 non-Gantt showcase components (not 6)."""
+        """5 non-Gantt showcase component wrappers appear between Gantt and MCP demo."""
         rv = client.get("/")
         html = rv.data.decode()
-        # Grid section comes after gantt section — count showcase_* includes in grid area
-        grid_pos = html.find('id="showcase-grid"')
-        # After the grid, the mcp-section starts
-        mcp_pos = html.find('id="mcp-demo"')
-        if grid_pos == -1 or mcp_pos == -1:
-            pytest.skip("Grid or MCP section not found — showcase data may be absent")
-        grid_html = html[grid_pos:mcp_pos]
-        # Each card has showcase-card class
-        card_count = grid_html.count("showcase-card")
+        # Each component wrapper has data-track="showcase-view" (unique to the outer div)
+        card_count = html.count('data-track="showcase-view"')
         # Could be 0 if showcase data not injected (no DB), skip gracefully
         if card_count > 0:
-            # Should be <= 5 cards (not 6 — Gantt is pulled out)
-            assert card_count <= 5, f"Expected ≤5 showcase cards in grid, got {card_count}"
+            # Should be <= 6 (5 story sections + 1 gantt)
+            assert card_count <= 6, f"Expected ≤6 showcase wrapper divs, got {card_count}"
 
 
-# ── CSS responsive grid ───────────────────────────────────────────────────────
+# ── CSS responsive story scroll ───────────────────────────────────────────────
 
 class TestResponsiveGrid:
     def test_desktop_3col_grid(self, client):
-        """CSS specifies 3-column grid for desktop showcase."""
+        """CSS specifies story-section for desktop showcase (replaced 3-column grid)."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert "repeat(3, 1fr)" in html
+        assert "story-section" in html
 
     def test_tablet_2col_grid(self, client):
-        """CSS specifies 2-column grid at ≤768px."""
+        """CSS specifies responsive padding for story sections at ≤768px."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert "repeat(2, 1fr)" in html
+        # Story sections use reduced padding at tablet, not a 2-col grid
+        assert "max-width: 768px" in html
 
     def test_mobile_1col_grid(self, client):
-        """CSS specifies 1-column grid at ≤480px."""
+        """CSS specifies responsive padding for story sections at ≤480px."""
         rv = client.get("/")
         html = rv.data.decode()
-        # In responsive CSS at 480px, grid-template-columns: 1fr
-        # We check for the responsive media query targeting showcase-grid
+        # Story sections use minimal padding at mobile
         assert "max-width: 480px" in html
-        # 1fr for mobile single column
-        assert "1fr" in html
