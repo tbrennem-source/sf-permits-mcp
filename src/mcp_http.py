@@ -15,9 +15,13 @@ Connect from Claude.ai:
     Settings > Integrations > Add MCP server > paste URL + /mcp
 """
 
+import logging
 import os
+import secrets
 
 from mcp.server.fastmcp import FastMCP
+
+logger = logging.getLogger(__name__)
 
 # Import all tool functions (same as server.py)
 from src.tools.search_permits import search_permits
@@ -96,12 +100,69 @@ mcp.tool()(search_source)
 mcp.tool()(schema_info)
 mcp.tool()(list_tests)
 
-# ── Health check endpoint (for Railway) ───────────────────────────
+# ── Bearer token auth middleware (stopgap until OAuth in QS13) ────
 from starlette.requests import Request as StarletteRequest
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
+from starlette.types import ASGIApp, Receive, Scope, Send
+
+_MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN", "")
 
 
+class BearerTokenMiddleware:
+    """ASGI middleware: reject unauthenticated /mcp requests when MCP_AUTH_TOKEN is set."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+
+        # Skip auth for health/root endpoints
+        if path in ("/", "/health"):
+            await self.app(scope, receive, send)
+            return
+
+        # Skip auth if no token configured (backwards compatible)
+        if not _MCP_AUTH_TOKEN:
+            await self.app(scope, receive, send)
+            return
+
+        # Extract Authorization header
+        headers = dict(scope.get("headers", []))
+        auth_header = headers.get(b"authorization", b"").decode()
+
+        if not auth_header.startswith("Bearer "):
+            response = JSONResponse(
+                {"error": "Authentication required. Provide Authorization: Bearer <token>"},
+                status_code=401,
+            )
+            await response(scope, receive, send)
+            return
+
+        provided_token = auth_header[7:]  # Strip "Bearer "
+        if not secrets.compare_digest(provided_token, _MCP_AUTH_TOKEN):
+            response = JSONResponse(
+                {"error": "Invalid authentication token"},
+                status_code=403,
+            )
+            await response(scope, receive, send)
+            return
+
+        await self.app(scope, receive, send)
+
+
+if _MCP_AUTH_TOKEN:
+    logger.info("MCP bearer token auth enabled")
+else:
+    logger.warning("MCP_AUTH_TOKEN not set — MCP server is unauthenticated")
+
+
+# ── Health check endpoint (for Railway) ───────────────────────────
 async def health_check(request: StarletteRequest) -> JSONResponse:
     return JSONResponse({
         "status": "healthy",
@@ -114,5 +175,25 @@ mcp._custom_starlette_routes.append(Route("/health", health_check))
 mcp._custom_starlette_routes.append(Route("/", health_check))
 
 
+# ── Entry point ───────────────────────────────────────────────────
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    import asyncio
+    import uvicorn
+
+    async def main():
+        app = mcp.streamable_http_app()
+
+        # Wrap with bearer token auth if configured
+        if _MCP_AUTH_TOKEN:
+            app = BearerTokenMiddleware(app)
+
+        config = uvicorn.Config(
+            app,
+            host=mcp.settings.host,
+            port=mcp.settings.port,
+            log_level=mcp.settings.log_level.lower(),
+        )
+        server = uvicorn.Server(config)
+        await server.serve()
+
+    asyncio.run(main())
